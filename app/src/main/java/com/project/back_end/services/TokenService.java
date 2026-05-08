@@ -3,10 +3,9 @@ package com.project.back_end.services;
 import com.project.back_end.repo.AdminRepository;
 import com.project.back_end.repo.DoctorRepository;
 import com.project.back_end.repo.PatientRepository;
-
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,59 +25,51 @@ public class TokenService {
     @Autowired
     private PatientRepository patientRepository;
 
+
     @Value("${jwt.secret}")
-    private String secret;
+    private String secretKey;
 
-    // =========================
-    // SIGNING KEY
-    // =========================
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
-    }
-
-    // =========================
-    // GENERATE TOKEN
-    // =========================
     public String generateToken(String email) {
 
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)) // 7 days
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .compact();
     }
 
     // =========================
     // EXTRACT EMAIL
     // =========================
-    public String extractEmail(String token) {
+    public String extractIdentifier(String token) {
 
-        return Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
+
+        return claims.getSubject();
     }
 
     // =========================
     // VALIDATE TOKEN
     // =========================
-    public boolean validateToken(String token, String role) {
+    public boolean validateToken(String token, String user) {
 
         try {
-            String email = extractEmail(token);
+            String email = extractIdentifier(token);
 
-            if (role.equals("admin")) {
+            if (user.equals("admin")) {
                 return adminRepository.findByEmail(email).isPresent();
             }
 
-            if (role.equals("doctor")) {
+            if (user.equals("doctor")) {
                 return doctorRepository.findByEmail(email).isPresent();
             }
 
-            if (role.equals("patient")) {
+            if (user.equals("patient")) {
                 return patientRepository.findByEmail(email).isPresent();
             }
 
@@ -87,5 +78,9 @@ public class TokenService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 }

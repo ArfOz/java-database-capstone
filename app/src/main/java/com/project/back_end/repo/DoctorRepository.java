@@ -11,7 +11,7 @@ import java.util.Optional;
 
 
 @Repository
-public interface DoctorRepository extends JpaRepository<Doctor,Long> {
+public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
 
     Optional<Doctor> findByEmail(String email);
@@ -19,7 +19,31 @@ public interface DoctorRepository extends JpaRepository<Doctor,Long> {
     @Query("SELECT d FROM Doctor d WHERE d.name LIKE CONCAT('%', :name, '%' ) ")
     List<Doctor> findByNameLike(@Param("name") String name);
 
-    List<Doctor> findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(String name, String specialty);
+
+    @Query("""
+                SELECT d
+                FROM Doctor d
+                WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%'))
+                  AND LOWER(d.specialty) = LOWER(:specialty)
+            """)
+    List<Doctor> search(
+            @Param("name") String name,
+            @Param("specialty") String specialty
+    );
+
+
+    @Query("""
+            SELECT DISTINCT d FROM Doctor d
+            JOIN d.availableTimes t
+            WHERE (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
+              AND (:specialty IS NULL OR LOWER(d.specialty) LIKE LOWER(CONCAT('%', :specialty, '%')))
+              AND (:time IS NULL OR t = :time)
+            """)
+    List<Doctor> findDoctors(
+            @Param("name") String name,
+            @Param("specialty") String specialty,
+            @Param("time") String time
+    );
 
     List<Doctor> findBySpecialtyIgnoreCase(String specialty);
 
