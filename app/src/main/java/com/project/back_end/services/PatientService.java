@@ -4,14 +4,12 @@ import com.project.back_end.models.Appointment;
 import com.project.back_end.models.Patient;
 import com.project.back_end.repo.AppointmentRepository;
 import com.project.back_end.repo.PatientRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PatientService {
@@ -45,7 +43,15 @@ public class PatientService {
     @Transactional
     public ResponseEntity<Map<String, Object>> getPatientAppointment(Long id, String token) {
         String email = tokenService.extractIdentifier(token);
-        Long patientId = patientRepository.findByEmail(email).get().getId();
+        Optional<Patient> optionalPatient = patientRepository.findByEmail(email);
+        if (optionalPatient.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Long patientId = optionalPatient.get().getId();
+
+        if (!patientId.equals(id)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         if (!patientRepository.existsById(patientId)) {
             return ResponseEntity.notFound().build();
@@ -66,14 +72,13 @@ public class PatientService {
 
     public ResponseEntity<Map<String, Object>> filterByCondition(String condition, Long id) {
         int status;
-        if (condition == "past") {
+        if (Objects.equals(condition, "past")) {
             status = 0;
-        } else if (condition == "future") {
+        } else if (Objects.equals(condition, "future")) {
             status = 1;
         } else {
             return ResponseEntity.badRequest().build();
         }
-        appointmentRepository.findByPatientIdAndStatus(id, status);
         Map<String, Object> response = new HashMap<>();
         response.put("status", status);
         response.put("appointments", appointmentRepository.findByPatientIdAndStatus(id, status));
@@ -91,9 +96,9 @@ public class PatientService {
 
     public ResponseEntity<Map<String, Object>> filterByDoctorAndCondition(String condition, String name, long patientId) {
         int status;
-        if (condition == "past") {
+        if (Objects.equals(condition, "past")) {
             status = 0;
-        } else if (condition == "future") {
+        } else if (Objects.equals(condition, "future")) {
             status = 1;
         } else {
             return ResponseEntity.badRequest().build();
@@ -109,7 +114,11 @@ public class PatientService {
 
     public ResponseEntity<Map<String, Object>> getPatientDetails(String token) {
         String email = tokenService.extractIdentifier(token);
-        Long patientId = patientRepository.findByEmail(email).get().getId();
+        Optional<Patient> optionalPatient = patientRepository.findByEmail(email);
+        if (optionalPatient.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Long patientId = optionalPatient.get().getId();
 
         if (!patientRepository.existsById(patientId)) {
             return ResponseEntity.notFound().build();

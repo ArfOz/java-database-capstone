@@ -33,7 +33,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    int bookAppointment(Appointment appointment) {
+    public int bookAppointment(Appointment appointment) {
 
         try {
             appointmentRepository.save(appointment);
@@ -46,7 +46,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    ResponseEntity<String> updateAppointment(Appointment appointment) {
+    public ResponseEntity<String> updateAppointment(Appointment appointment) {
 
         Map<String, Object> response = new HashMap<>();
         Boolean exist = this.validateAppointment(appointment);
@@ -62,7 +62,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    ResponseEntity<String> cancelAppointment(Appointment appointment) {
+    public ResponseEntity<String> cancelAppointment(Appointment appointment) {
         Boolean exist = this.validateAppointment(appointment);
         if (!exist) {
             throw new RuntimeException("Appointment not found");
@@ -72,7 +72,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    ResponseEntity<Map<String, Object>> getAppointment(String pname, LocalDate date, String token) {
+    public ResponseEntity<Map<String, Object>> getAppointment(String pname, LocalDate date, String token) {
 
         Map<String, Object> response = new HashMap<>();
         try {

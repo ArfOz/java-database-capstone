@@ -144,6 +144,32 @@ public class ApplicationService {
         return 1;
     }
 
+
+    public ResponseEntity<Map<String, String>> validateDoctorLogin(Login login) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            Optional<Doctor> optionalDoctor = doctorRepository.findByEmail(login.getEmail());
+            if (optionalDoctor.isEmpty()) {
+                response.put("message", "Doctor not found");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            Doctor doctor = optionalDoctor.get();
+            if (!doctor.getPassword().equals(login.getPassword())) {
+                response.put("message", "Invalid password");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            String token = tokenService.generateToken(doctor.getEmail());
+            response.put("token", token);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("message", "Internal server error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
     public boolean validatePatient(Patient patient) {
 
         Optional<Patient> optionalPatient = patientRepository.findByEmailOrPhone(patient.getEmail(), patient.getPhone());

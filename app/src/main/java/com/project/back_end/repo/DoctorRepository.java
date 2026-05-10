@@ -33,11 +33,10 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
 
     @Query("""
-            SELECT DISTINCT d FROM Doctor d
-            JOIN d.availableTimes t
+            SELECT d FROM Doctor d
             WHERE (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
               AND (:specialty IS NULL OR LOWER(d.specialty) LIKE LOWER(CONCAT('%', :specialty, '%')))
-              AND (:time IS NULL OR t = :time)
+              AND (:time IS NULL OR :time MEMBER OF d.availableTimes)
             """)
     List<Doctor> findDoctors(
             @Param("name") String name,

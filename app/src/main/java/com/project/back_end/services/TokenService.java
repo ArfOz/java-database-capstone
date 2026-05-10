@@ -59,18 +59,18 @@ public class TokenService {
     public boolean validateToken(String token, String user) {
 
         try {
-            String email = extractIdentifier(token);
+            String identifier = extractIdentifier(token);
 
             if (user.equals("admin")) {
-                return adminRepository.findByEmail(email).isPresent();
+                return adminRepository.findByUsername(identifier).isPresent();
             }
 
             if (user.equals("doctor")) {
-                return doctorRepository.findByEmail(email).isPresent();
+                return doctorRepository.findByEmail(identifier).isPresent();
             }
 
             if (user.equals("patient")) {
-                return patientRepository.findByEmail(email).isPresent();
+                return patientRepository.findByEmail(identifier).isPresent();
             }
 
             return false;

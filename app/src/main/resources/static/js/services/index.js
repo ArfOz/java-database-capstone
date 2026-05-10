@@ -11,28 +11,6 @@ const ADMIN_API = API_BASE_URL + "/admin";
 const DOCTOR_API = API_BASE_URL + "/doctor/login";
 
 
-// =========================
-// INIT (run after page load)
-// =========================
-window.onload = function () {
-
-  // Select admin login button
-  const adminBtn = document.getElementById("adminLogin");
-  if (adminBtn) {
-    adminBtn.addEventListener("click", () => {
-      openModal("adminLogin");
-    });
-  }
-
-  // Select doctor login button
-  const doctorBtn = document.getElementById("doctorLogin");
-  if (doctorBtn) {
-    doctorBtn.addEventListener("click", () => {
-      openModal("doctorLogin");
-    });
-  }
-};
-
 
 // =========================
 // ADMIN LOGIN HANDLER
@@ -41,8 +19,8 @@ window.adminLoginHandler = async function () {
 
   try {
     // Read input values
-    const username = document.getElementById("adminUsername").value;
-    const password = document.getElementById("adminPassword").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
     const admin = { username, password };
 
@@ -62,12 +40,13 @@ window.adminLoginHandler = async function () {
 
       // Store token in localStorage
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userRole", "admin");
 
       // Set role
       selectRole("admin");
 
       // Redirect if needed
-      window.location.href = "/pages/adminDashboard.html";
+      window.location.href = `/adminDashboard/${data.token}`;
 
     } else {
       alert("Invalid credentials!");
@@ -87,8 +66,8 @@ window.doctorLoginHandler = async function () {
 
   try {
     // Read input values
-    const email = document.getElementById("doctorEmail").value;
-    const password = document.getElementById("doctorPassword").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
     const doctor = { email, password };
 
@@ -108,12 +87,13 @@ window.doctorLoginHandler = async function () {
 
       // Store token
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userRole", "doctor")
 
       // Set role
       selectRole("doctor");
 
       // Redirect
-      window.location.href = "/doctor/dashboard";
+      window.location.href = `/doctorDashboard/${data.token}`;
 
     } else {
       alert("Invalid credentials!");
@@ -129,6 +109,7 @@ window.doctorLoginHandler = async function () {
 // =========================
 // ROLE SELECT HELPER
 // =========================
-function selectRole(role) {
-  localStorage.setItem("userRole", role);
+window.selectRole = function(role) {
+    localStorage.setItem("userRole", role);
+    openModal(role.toLowerCase() + "Login");
 }
